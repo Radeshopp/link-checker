@@ -4,14 +4,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { CheckResult, checkMultipleLinks } from "@/lib/checkLink";
 import { ResponseDetails } from "./ResponseDetails";
+import { MediaPlayer } from "./MediaPlayer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Download } from "lucide-react";
+import { Download, Link as LinkIcon } from "lucide-react";
 
 export const LinkChecker = () => {
   const [urls, setUrls] = useState("");
   const [isChecking, setIsChecking] = useState(false);
   const [results, setResults] = useState<CheckResult[]>([]);
+  const [playingUrl, setPlayingUrl] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleCheck = async () => {
@@ -65,13 +67,25 @@ export const LinkChecker = () => {
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
-      <Card>
+      {playingUrl && (
+        <MediaPlayer url={playingUrl} onClose={() => setPlayingUrl(null)} />
+      )}
+
+      <Card className="border-2 border-primary/20 animate-fade-in">
         <CardHeader>
-          <CardTitle>Check Multiple Links</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <LinkIcon className="h-5 w-5 text-primary" />
+            Check Multiple Links
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <Textarea
-            placeholder="Enter M3U8 URLs (one per line)"
+            placeholder="Enter URLs to check (one per line)
+Supported formats:
+- M3U8 streams
+- MP4 videos
+- MP3 audio
+- Regular HTTP(S) links"
             value={urls}
             onChange={(e) => setUrls(e.target.value)}
             className="min-h-[200px] mb-4 font-mono text-sm"
@@ -80,7 +94,7 @@ export const LinkChecker = () => {
             <Button
               onClick={handleCheck}
               disabled={isChecking}
-              className="min-w-[120px]"
+              className="min-w-[120px] hover:scale-105 transition-transform duration-200"
             >
               {isChecking ? (
                 <div className="loading-spinner" />
@@ -92,7 +106,7 @@ export const LinkChecker = () => {
               <Button
                 variant="outline"
                 onClick={downloadWorkingLinks}
-                className="gap-2"
+                className="gap-2 hover:scale-105 transition-transform duration-200"
               >
                 <Download size={16} />
                 Download Working Links
@@ -103,7 +117,7 @@ export const LinkChecker = () => {
       </Card>
 
       {results.length > 0 && (
-        <Tabs defaultValue="working" className="w-full">
+        <Tabs defaultValue="working" className="w-full animate-fade-in">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="working">
               Working Links ({workingLinks.length})
@@ -116,7 +130,11 @@ export const LinkChecker = () => {
             <Card>
               <CardContent className="pt-6">
                 {workingLinks.map((result, index) => (
-                  <ResponseDetails key={index} result={result} />
+                  <ResponseDetails 
+                    key={index} 
+                    result={result} 
+                    onPlay={setPlayingUrl}
+                  />
                 ))}
               </CardContent>
             </Card>
@@ -125,7 +143,10 @@ export const LinkChecker = () => {
             <Card>
               <CardContent className="pt-6">
                 {nonWorkingLinks.map((result, index) => (
-                  <ResponseDetails key={index} result={result} />
+                  <ResponseDetails 
+                    key={index} 
+                    result={result}
+                  />
                 ))}
               </CardContent>
             </Card>
