@@ -7,8 +7,29 @@ export interface CheckResult {
   isWorking: boolean;
 }
 
+const isValidUrl = (urlString: string): boolean => {
+  try {
+    const url = new URL(urlString);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+};
+
 export const checkM3U8Link = async (url: string): Promise<CheckResult> => {
   const startTime = performance.now();
+  
+  // Validate URL format first
+  if (!isValidUrl(url)) {
+    return {
+      url,
+      status: 0,
+      headers: {},
+      responseTime: 0,
+      error: "Invalid URL format. URL must start with http:// or https://",
+      isWorking: false
+    };
+  }
   
   try {
     const response = await fetch(url, {
@@ -43,7 +64,9 @@ export const checkM3U8Link = async (url: string): Promise<CheckResult> => {
 };
 
 export const checkMultipleLinks = async (urls: string[]): Promise<CheckResult[]> => {
-  const uniqueUrls = Array.from(new Set(urls));
+  const uniqueUrls = Array.from(new Set(urls))
+    .map(url => url.trim())
+    .filter(url => url); // Remove empty strings
   const results = await Promise.all(uniqueUrls.map(url => checkM3U8Link(url)));
   return results;
 };
