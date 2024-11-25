@@ -1,13 +1,10 @@
-interface Channel {
-  name: string;
-  url: string;
-  logo?: string;
-  group?: string;
-}
+import { Channel } from "@/types/channel";
 
 export const parseM3U = async (url: string): Promise<Channel[]> => {
   try {
     const response = await fetch(url);
+    if (!response.ok) throw new Error('Failed to fetch playlist');
+    
     const content = await response.text();
     const lines = content.split('\n');
     const channels: Channel[] = [];
@@ -18,27 +15,26 @@ export const parseM3U = async (url: string): Promise<Channel[]> => {
       
       if (line.startsWith('#EXTINF:')) {
         // Parse channel name and attributes
-        const matches = line.match(/tvg-name="([^"]*)"|tvg-logo="([^"]*)"|group-title="([^"]*)"/g);
-        const nameMatch = line.match(/,(.*)$/);
+        const matches = {
+          name: line.match(/,(.*)$/)?.[1]?.trim() || 'Unnamed Channel',
+          logo: line.match(/tvg-logo="([^"]*)"/)?.[1],
+          group: line.match(/group-title="([^"]*)"/)?.[1],
+        };
         
-        if (nameMatch) {
-          currentChannel.name = nameMatch[1].trim();
-        }
-        
-        if (matches) {
-          matches.forEach(match => {
-            if (match.startsWith('tvg-logo="')) {
-              currentChannel.logo = match.slice(10, -1);
-            } else if (match.startsWith('group-title="')) {
-              currentChannel.group = match.slice(13, -1);
-            }
-          });
-        }
+        currentChannel = {
+          name: matches.name,
+          logo: matches.logo,
+          group: matches.group,
+        };
       } else if (line.startsWith('http')) {
         // This is the channel URL
-        currentChannel.url = line;
-        if (currentChannel.name && currentChannel.url) {
-          channels.push(currentChannel as Channel);
+        if (currentChannel.name) {
+          channels.push({
+            name: currentChannel.name,
+            url: line,
+            logo: currentChannel.logo,
+            group: currentChannel.group,
+          });
         }
         currentChannel = {};
       }

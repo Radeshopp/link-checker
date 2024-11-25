@@ -4,19 +4,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { CheckResult, checkMultipleLinks } from "@/lib/checkLink";
 import { ResponseDetails } from "./ResponseDetails";
-import { MediaPlayer } from "./MediaPlayer";
-import { ChannelList } from "./ChannelList";
+import { Channel } from "@/types/channel";
+import { PlaylistView } from "./playlist/PlaylistView";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Download, Link as LinkIcon } from "lucide-react";
 import { parseM3U } from "@/lib/m3uParser";
-
-interface Channel {
-  name: string;
-  url: string;
-  logo?: string;
-  group?: string;
-}
 
 export const LinkChecker = () => {
   const [urls, setUrls] = useState("");
@@ -45,7 +38,7 @@ export const LinkChecker = () => {
       setIsChecking(true);
       
       // Check if the input is an M3U playlist
-      if (linkList[0].toLowerCase().endsWith('.m3u')) {
+      if (linkList[0].toLowerCase().endsWith('.m3u') || linkList[0].toLowerCase().endsWith('.m3u8')) {
         const parsedChannels = await parseM3U(linkList[0]);
         setChannels(parsedChannels);
         if (parsedChannels.length > 0) {
@@ -137,25 +130,12 @@ Supported formats:
       </Card>
 
       {channels.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2">
-            {playingUrl && (
-              <MediaPlayer url={playingUrl} onClose={() => setPlayingUrl(null)} />
-            )}
-          </div>
-          <Card className="h-[600px]">
-            <CardHeader>
-              <CardTitle>Channels</CardTitle>
-            </CardHeader>
-            <CardContent className="h-[calc(100%-5rem)]">
-              <ChannelList
-                channels={channels}
-                onChannelSelect={(channel) => setPlayingUrl(channel.url)}
-                currentUrl={playingUrl || undefined}
-              />
-            </CardContent>
-          </Card>
-        </div>
+        <PlaylistView
+          channels={channels}
+          playingUrl={playingUrl}
+          onChannelSelect={(channel) => setPlayingUrl(channel.url)}
+          onClose={() => setPlayingUrl(null)}
+        />
       )}
 
       {results.length > 0 && !channels.length && (
