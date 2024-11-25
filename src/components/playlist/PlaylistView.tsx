@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { MediaPlayer } from "../media/MediaPlayer";
+import { MediaPlayer } from "@/components/MediaPlayer";
 import { ChannelList } from "./ChannelList";
 import { Channel } from "@/types/channel";
 

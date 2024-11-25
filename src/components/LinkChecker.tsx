@@ -10,6 +10,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Download, Link as LinkIcon } from "lucide-react";
 import { parseM3U } from "@/lib/m3uParser";
+import { MediaPlayer } from "@/components/MediaPlayer";
+
+// ... keep existing code (state declarations and handlers)
 
 export const LinkChecker = () => {
   const [urls, setUrls] = useState("");
