@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Hls from 'hls.js';
-import { X, Airplay, Tv, PictureInPicture } from 'lucide-react';
+import { X, Airplay, Cast, PictureInPicture } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 import { useToast } from './ui/use-toast';
@@ -15,6 +15,7 @@ export const MediaPlayer = ({ url, onClose }: MediaPlayerProps) => {
   const hlsRef = useRef<Hls | null>(null);
   const { toast } = useToast();
   const [isPiPSupported, setIsPiPSupported] = useState(false);
+  const [isCasting, setIsCasting] = useState(false);
 
   useEffect(() => {
     // Check PiP support
@@ -78,32 +79,51 @@ export const MediaPlayer = ({ url, onClose }: MediaPlayerProps) => {
 
     initPlayer();
 
-    // Enable screen orientation lock for fullscreen
-    const enableFullscreenOrientation = async () => {
-      try {
-        await screen.orientation.lock('landscape');
-      } catch (error) {
-        // Orientation API not supported or permission denied
+    // Handle fullscreen orientation
+    const handleFullscreenChange = () => {
+      if (document.fullscreenElement) {
+        try {
+          // Use type assertion for screen.orientation
+          const screenOrientation = (screen as any).orientation;
+          if (screenOrientation && typeof screenOrientation.lock === 'function') {
+            screenOrientation.lock('landscape').catch(() => {
+              // Silently handle orientation lock errors
+            });
+          }
+        } catch (error) {
+          // Ignore orientation API errors
+        }
+      } else {
+        try {
+          const screenOrientation = (screen as any).orientation;
+          if (screenOrientation && typeof screenOrientation.unlock === 'function') {
+            screenOrientation.unlock();
+          }
+        } catch (error) {
+          // Ignore orientation API errors
+        }
       }
     };
 
-    video.addEventListener('fullscreenchange', () => {
-      if (document.fullscreenElement) {
-        enableFullscreenOrientation();
-      } else {
-        screen.orientation.unlock();
-      }
-    });
+    video.addEventListener('fullscreenchange', handleFullscreenChange);
 
     return () => {
       if (hlsRef.current) {
         hlsRef.current.destroy();
       }
       if (video) {
+        video.removeEventListener('fullscreenchange', handleFullscreenChange);
         video.removeAttribute('src');
         video.load();
       }
-      screen.orientation.unlock();
+      try {
+        const screenOrientation = (screen as any).orientation;
+        if (screenOrientation && typeof screenOrientation.unlock === 'function') {
+          screenOrientation.unlock();
+        }
+      } catch (error) {
+        // Ignore orientation API errors
+      }
     };
   }, [url]);
 
@@ -126,11 +146,49 @@ export const MediaPlayer = ({ url, onClose }: MediaPlayerProps) => {
     }
   };
 
-  const castToDevice = () => {
-    toast({
-      title: "Casting",
-      description: "Looking for available devices...",
-    });
+  const castToDevice = async () => {
+    try {
+      // Check if the browser supports the Presentation API
+      if ('presentation' in navigator && 'defaultRequest' in (navigator as any).presentation) {
+        setIsCasting(true);
+        toast({
+          title: "Casting",
+          description: "Looking for available devices...",
+        });
+
+        const presentationRequest = new (window as any).PresentationRequest([url]);
+        const connection = await presentationRequest.start();
+        
+        connection.addEventListener('connect', () => {
+          toast({
+            title: "Connected",
+            description: "Successfully connected to display device",
+          });
+        });
+
+        connection.addEventListener('close', () => {
+          setIsCasting(false);
+          toast({
+            title: "Disconnected",
+            description: "Cast session ended",
+          });
+        });
+      } else {
+        // Fallback for browsers without Presentation API
+        toast({
+          title: "Not Supported",
+          description: "Casting is not supported in this browser",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      setIsCasting(false);
+      toast({
+        title: "Cast Error",
+        description: "Failed to start casting session",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -154,8 +212,9 @@ export const MediaPlayer = ({ url, onClose }: MediaPlayerProps) => {
               size="sm"
               onClick={castToDevice}
               className="hover:bg-primary/10 transition-colors"
+              disabled={isCasting}
             >
-              <Airplay className="h-4 w-4" />
+              {isCasting ? <Cast className="h-4 w-4 animate-pulse" /> : <Airplay className="h-4 w-4" />}
             </Button>
             <Button
               variant="ghost"
