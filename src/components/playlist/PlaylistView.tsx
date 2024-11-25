@@ -12,21 +12,23 @@ interface PlaylistViewProps {
 
 export const PlaylistView = ({ channels, playingUrl, onChannelSelect, onClose }: PlaylistViewProps) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
-      <div className="md:col-span-2">
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 p-4 max-w-[1920px] mx-auto">
+      <div className="lg:col-span-3 space-y-4">
         {playingUrl && (
           <MediaPlayer url={playingUrl} onClose={onClose} />
         )}
       </div>
-      <Card className="h-[600px] border-2 border-primary/10">
-        <CardContent className="h-full p-4">
-          <ChannelList
-            channels={channels}
-            onChannelSelect={onChannelSelect}
-            currentUrl={playingUrl || undefined}
-          />
-        </CardContent>
-      </Card>
+      <div className="lg:col-span-1">
+        <Card className="h-[calc(100vh-2rem)] border-2 border-primary/5 shadow-lg">
+          <CardContent className="h-full p-4">
+            <ChannelList
+              channels={channels}
+              onChannelSelect={onChannelSelect}
+              currentUrl={playingUrl || undefined}
+            />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

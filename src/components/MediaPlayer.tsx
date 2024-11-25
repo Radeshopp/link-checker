@@ -4,6 +4,7 @@ import { useToast } from './ui/use-toast';
 import { MediaControls } from './media/MediaControls';
 import { VideoPlayer } from './media/VideoPlayer';
 import { useScreenOrientation } from './media/useScreenOrientation';
+import { Badge } from './ui/badge';
 
 interface MediaPlayerProps {
   url: string;
@@ -84,12 +85,14 @@ export const MediaPlayer = ({ url, onClose }: MediaPlayerProps) => {
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto mb-4 animate-fade-in shadow-lg border-2 border-primary/10">
+    <Card className="w-full mx-auto animate-fade-in shadow-lg border-2 border-primary/5">
       <CardContent className="p-4">
-        <div className="flex justify-between items-center mb-2">
+        <div className="flex justify-between items-center mb-3">
           <div className="flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-            <h3 className="text-sm font-medium text-primary">Now Playing</h3>
+            <Badge variant="outline" className="text-primary border-primary/20">
+              Now Playing
+            </Badge>
           </div>
           <MediaControls
             onClose={onClose}

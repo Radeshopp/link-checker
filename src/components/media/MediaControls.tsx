@@ -1,7 +1,7 @@
 import React from 'react';
-import { X, Airplay, Cast, PictureInPicture } from 'lucide-react';
+import { X, Cast, PictureInPicture } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
+import { Tooltip } from '@/components/ui/tooltip';
 
 interface MediaControlsProps {
   onClose: () => void;
@@ -21,36 +21,38 @@ export const MediaControls = ({
   return (
     <div className="flex items-center gap-2">
       {isPiPSupported && (
+        <Tooltip content="Picture in Picture">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onPiP}
+            className="hover:bg-primary/5 transition-colors"
+          >
+            <PictureInPicture className="h-4 w-4" />
+          </Button>
+        </Tooltip>
+      )}
+      <Tooltip content={isCasting ? "Casting..." : "Cast to device"}>
         <Button
           variant="ghost"
           size="sm"
-          onClick={onPiP}
-          className="hover:bg-primary/10 transition-colors"
+          onClick={onCast}
+          className="hover:bg-primary/5 transition-colors"
+          disabled={isCasting}
         >
-          <PictureInPicture className="h-4 w-4" />
+          <Cast className={`h-4 w-4 ${isCasting ? 'text-primary animate-pulse' : ''}`} />
         </Button>
-      )}
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={onCast}
-        className="hover:bg-primary/10 transition-colors"
-        disabled={isCasting}
-      >
-        {isCasting ? (
-          <Cast className="h-4 w-4 animate-pulse text-primary" />
-        ) : (
-          <Airplay className="h-4 w-4" />
-        )}
-      </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={onClose}
-        className="hover:bg-destructive/10 transition-colors"
-      >
-        <X className="h-4 w-4" />
-      </Button>
+      </Tooltip>
+      <Tooltip content="Close player">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onClose}
+          className="hover:bg-destructive/10 transition-colors"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </Tooltip>
     </div>
   );
 };
