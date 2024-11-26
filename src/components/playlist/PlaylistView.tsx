@@ -18,8 +18,8 @@ export const PlaylistView = ({ channels, playingUrl, onChannelSelect, onClose }:
           <MediaPlayer url={playingUrl} onClose={onClose} />
         )}
       </div>
-      <div className="lg:col-span-1 h-full">
-        <Card className="h-[calc(100vh-8rem)] border border-primary/10 shadow-lg bg-background/50 backdrop-blur supports-[backdrop-filter]:bg-background/50">
+      <div className="lg:col-span-1 h-[calc(100vh-2rem)]">
+        <Card className="h-full border border-primary/10 shadow-lg bg-background/50 backdrop-blur supports-[backdrop-filter]:bg-background/50">
           <div className="h-full p-4">
             <ChannelList
               channels={channels}
