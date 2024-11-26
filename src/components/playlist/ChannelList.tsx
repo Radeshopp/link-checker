@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
-import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Tv2 } from "lucide-react";
 import { Channel } from "@/types/channel";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -62,27 +62,25 @@ export const ChannelList = ({ channels, onChannelSelect, currentUrl }: ChannelLi
             <ChevronLeft className="h-4 w-4" />
           </button>
           
-          <ScrollArea className="w-full" orientation="horizontal">
-            <div id="groups-container" className="flex gap-2 pb-3 px-1 overflow-x-auto whitespace-nowrap">
+          <div id="groups-container" className="flex gap-2 pb-3 px-1 overflow-x-auto whitespace-nowrap">
+            <Badge
+              variant={!selectedGroup ? "default" : "outline"}
+              className="cursor-pointer hover:opacity-80 transition-all duration-200 animate-fade-in"
+              onClick={() => setSelectedGroup(null)}
+            >
+              All
+            </Badge>
+            {groups.map(group => (
               <Badge
-                variant={!selectedGroup ? "default" : "outline"}
-                className="cursor-pointer hover:opacity-80 transition-all duration-200 animate-fade-in"
-                onClick={() => setSelectedGroup(null)}
+                key={group}
+                variant={selectedGroup === group ? "default" : "outline"}
+                className="cursor-pointer hover:opacity-80 transition-all duration-200 whitespace-nowrap animate-fade-in"
+                onClick={() => setSelectedGroup(group)}
               >
-                All
+                {group}
               </Badge>
-              {groups.map(group => (
-                <Badge
-                  key={group}
-                  variant={selectedGroup === group ? "default" : "outline"}
-                  className="cursor-pointer hover:opacity-80 transition-all duration-200 whitespace-nowrap animate-fade-in"
-                  onClick={() => setSelectedGroup(group)}
-                >
-                  {group}
-                </Badge>
-              ))}
-            </div>
-          </ScrollArea>
+            ))}
+          </div>
           
           <button 
             onClick={() => handleScroll('right')}
