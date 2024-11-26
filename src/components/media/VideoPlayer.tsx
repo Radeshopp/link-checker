@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { forwardRef, useEffect } from 'react';
 import Hls from 'hls.js';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -7,36 +7,29 @@ interface VideoPlayerProps {
   onError?: (error: string) => void;
 }
 
-export const VideoPlayer = ({ url, onError }: VideoPlayerProps) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const hlsRef = useRef<Hls | null>(null);
+export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(({ url, onError }, ref) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
+    const video = ref as React.MutableRefObject<HTMLVideoElement>;
+    if (!video.current) return;
 
     const initPlayer = () => {
       const isHLS = url.toLowerCase().includes('.m3u8');
       const isTS = url.toLowerCase().includes('.ts');
       
       if ((isHLS || isTS) && Hls.isSupported()) {
-        if (hlsRef.current) {
-          hlsRef.current.destroy();
-        }
-
         const hls = new Hls({
           enableWorker: true,
           lowLatencyMode: true,
           backBufferLength: 90,
         });
 
-        hlsRef.current = hls;
         hls.loadSource(url);
-        hls.attachMedia(video);
+        hls.attachMedia(video.current);
 
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          video.play().catch(() => {
+          video.current.play().catch(() => {
             toast({
               title: "Playback Error",
               description: "Unable to autoplay video. Please click play.",
@@ -56,38 +49,33 @@ export const VideoPlayer = ({ url, onError }: VideoPlayerProps) => {
             hls.destroy();
           }
         });
-      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = url;
-        video.addEventListener('loadedmetadata', () => {
-          video.play().catch(error => {
-            console.error('Playback error:', error);
-          });
+
+        return () => hls.destroy();
+      } else if (video.current.canPlayType('application/vnd.apple.mpegurl')) {
+        video.current.src = url;
+        video.current.addEventListener('loadedmetadata', () => {
+          video.current.play().catch(console.error);
         });
       } else {
-        video.src = url;
-        video.play().catch(error => {
-          console.error('Playback error:', error);
-        });
+        video.current.src = url;
+        video.current.play().catch(console.error);
       }
     };
 
-    initPlayer();
-
+    const cleanup = initPlayer();
     return () => {
-      if (hlsRef.current) {
-        hlsRef.current.destroy();
-      }
-      if (video) {
-        video.removeAttribute('src');
-        video.load();
+      cleanup?.();
+      if (video.current) {
+        video.current.removeAttribute('src');
+        video.current.load();
       }
     };
-  }, [url]);
+  }, [url, ref, onError, toast]);
 
   return (
-    <div className="relative rounded-lg overflow-hidden bg-black aspect-video">
+    <div className="relative rounded-xl overflow-hidden bg-black aspect-video shadow-lg transition-transform hover:scale-[1.01]">
       <video
-        ref={videoRef}
+        ref={ref}
         className="w-full h-full"
         controls
         playsInline
@@ -97,4 +85,6 @@ export const VideoPlayer = ({ url, onError }: VideoPlayerProps) => {
       </video>
     </div>
   );
-};
+});
+
+VideoPlayer.displayName = 'VideoPlayer';

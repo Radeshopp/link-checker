@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Search, Tv2, Radio } from "lucide-react";
 import { Channel } from "@/types/channel";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 interface ChannelListProps {
   channels: Channel[];
@@ -44,7 +45,7 @@ export const ChannelList = ({ channels, onChannelSelect, currentUrl }: ChannelLi
           <div className="flex gap-2 pb-3 px-1">
             <Badge
               variant={!selectedGroup ? "default" : "outline"}
-              className="cursor-pointer hover:opacity-80 transition-opacity"
+              className="cursor-pointer hover:opacity-80 transition-opacity animate-fade-in"
               onClick={() => setSelectedGroup(null)}
             >
               All
@@ -53,7 +54,7 @@ export const ChannelList = ({ channels, onChannelSelect, currentUrl }: ChannelLi
               <Badge
                 key={group}
                 variant={selectedGroup === group ? "default" : "outline"}
-                className="cursor-pointer hover:opacity-80 transition-opacity whitespace-nowrap"
+                className="cursor-pointer hover:opacity-80 transition-opacity whitespace-nowrap animate-fade-in"
                 onClick={() => setSelectedGroup(group)}
               >
                 {group}
@@ -63,48 +64,50 @@ export const ChannelList = ({ channels, onChannelSelect, currentUrl }: ChannelLi
         </ScrollArea>
       </div>
 
-      <ScrollArea className="flex-1">
-        <div className="space-y-2 pr-4">
+      <ScrollArea className="flex-1 pr-4">
+        <div className="space-y-2">
           {filteredChannels.map((channel, index) => (
-            <button
-              key={index}
-              onClick={() => onChannelSelect(channel)}
-              className={`w-full text-left p-3 rounded-lg transition-all hover:scale-[1.02] ${
-                channel.url === currentUrl
-                  ? 'bg-primary/10 text-primary shadow-sm'
-                  : 'hover:bg-muted/50'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                {channel.logo ? (
-                  <img
-                    src={channel.logo}
-                    alt={channel.name}
-                    className="w-8 h-8 rounded object-cover bg-background/50"
-                    onError={(e) => {
-                      e.currentTarget.src = '';
-                      e.currentTarget.className = 'hidden';
-                    }}
-                  />
-                ) : (
-                  <div className="w-8 h-8 rounded bg-primary/5 flex items-center justify-center">
-                    {channel.group?.toLowerCase().includes('radio') ? (
-                      <Radio className="w-4 h-4 text-primary/60" />
-                    ) : (
-                      <Tv2 className="w-4 h-4 text-primary/60" />
+            <div key={index}>
+              {index > 0 && <Separator className="my-2 opacity-50" />}
+              <button
+                onClick={() => onChannelSelect(channel)}
+                className={`w-full text-left p-3 rounded-lg transition-all hover:scale-[1.02] group ${
+                  channel.url === currentUrl
+                    ? 'bg-primary/10 text-primary shadow-sm'
+                    : 'hover:bg-muted/50'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  {channel.logo ? (
+                    <img
+                      src={channel.logo}
+                      alt={channel.name}
+                      className="w-10 h-10 rounded-lg object-cover bg-background/50 transition-transform group-hover:scale-105"
+                      onError={(e) => {
+                        e.currentTarget.src = '';
+                        e.currentTarget.className = 'hidden';
+                      }}
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-lg bg-primary/5 flex items-center justify-center transition-transform group-hover:scale-105">
+                      {channel.group?.toLowerCase().includes('radio') ? (
+                        <Radio className="w-5 h-5 text-primary/60" />
+                      ) : (
+                        <Tv2 className="w-5 h-5 text-primary/60" />
+                      )}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium truncate text-sm">{channel.name}</p>
+                    {channel.group && (
+                      <p className="text-xs text-muted-foreground truncate">
+                        {channel.group}
+                      </p>
                     )}
                   </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate text-sm">{channel.name}</p>
-                  {channel.group && (
-                    <p className="text-xs text-muted-foreground truncate">
-                      {channel.group}
-                    </p>
-                  )}
                 </div>
-              </div>
-            </button>
+              </button>
+            </div>
           ))}
         </div>
       </ScrollArea>

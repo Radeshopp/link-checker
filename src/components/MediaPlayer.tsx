@@ -85,7 +85,7 @@ export const MediaPlayer = ({ url, onClose }: MediaPlayerProps) => {
   };
 
   return (
-    <Card className="w-full mx-auto animate-fade-in shadow-lg border-2 border-primary/5">
+    <Card className="w-full mx-auto overflow-hidden shadow-lg border border-primary/10 bg-background/50 backdrop-blur supports-[backdrop-filter]:bg-background/50 animate-fade-in">
       <CardContent className="p-4">
         <div className="flex justify-between items-center mb-3">
           <div className="flex items-center gap-2">
@@ -102,7 +102,7 @@ export const MediaPlayer = ({ url, onClose }: MediaPlayerProps) => {
             isCasting={isCasting}
           />
         </div>
-        <VideoPlayer url={url} />
+        <VideoPlayer ref={videoRef} url={url} />
       </CardContent>
     </Card>
   );
