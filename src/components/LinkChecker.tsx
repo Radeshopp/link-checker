@@ -11,8 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Download, Link as LinkIcon } from "lucide-react";
 import { parseM3U } from "@/lib/m3uParser";
 import { MediaPlayer } from "@/components/MediaPlayer";
-
-// ... keep existing code (state declarations and handlers)
+import { Progress } from "@/components/ui/progress";
 
 export const LinkChecker = () => {
   const [urls, setUrls] = useState("");
@@ -20,6 +19,7 @@ export const LinkChecker = () => {
   const [results, setResults] = useState<CheckResult[]>([]);
   const [playingUrl, setPlayingUrl] = useState<string | null>(null);
   const [channels, setChannels] = useState<Channel[]>([]);
+  const [progress, setProgress] = useState(0);
   const { toast } = useToast();
 
   const handleCheck = async () => {
@@ -39,6 +39,7 @@ export const LinkChecker = () => {
 
     try {
       setIsChecking(true);
+      setProgress(0);
       
       // Check if the input is an M3U playlist
       if (linkList[0].toLowerCase().endsWith('.m3u') || linkList[0].toLowerCase().endsWith('.m3u8')) {
@@ -52,7 +53,17 @@ export const LinkChecker = () => {
         }
       }
       
-      const checkResults = await checkMultipleLinks(linkList);
+      const totalLinks = linkList.length;
+      let completedLinks = 0;
+      
+      const checkResults = [];
+      for (const url of linkList) {
+        const result = await checkMultipleLinks([url]);
+        checkResults.push(...result);
+        completedLinks++;
+        setProgress(Math.round((completedLinks / totalLinks) * 100));
+      }
+      
       setResults(checkResults);
 
       toast({
@@ -67,6 +78,7 @@ export const LinkChecker = () => {
       });
     } finally {
       setIsChecking(false);
+      setProgress(0);
     }
   };
 
@@ -106,28 +118,37 @@ Supported formats:
             onChange={(e) => setUrls(e.target.value)}
             className="min-h-[200px] mb-4 font-mono text-sm"
           />
-          <div className="flex justify-between items-center">
-            <Button
-              onClick={handleCheck}
-              disabled={isChecking}
-              className="min-w-[120px] hover:scale-105 transition-transform duration-200"
-            >
-              {isChecking ? (
-                <div className="loading-spinner" />
-              ) : (
-                "Check Links"
-              )}
-            </Button>
-            {workingLinks.length > 0 && (
-              <Button
-                variant="outline"
-                onClick={downloadWorkingLinks}
-                className="gap-2 hover:scale-105 transition-transform duration-200"
-              >
-                <Download size={16} />
-                Download Working Links
-              </Button>
+          <div className="space-y-4">
+            {isChecking && (
+              <div className="w-full space-y-2">
+                <Progress 
+                  value={progress} 
+                  className="h-2 w-full bg-secondary/20"
+                />
+                <p className="text-sm text-gray-500 text-center">
+                  Checking links... {progress}%
+                </p>
+              </div>
             )}
+            <div className="flex justify-between items-center">
+              <Button
+                onClick={handleCheck}
+                disabled={isChecking}
+                className="min-w-[120px] hover:scale-105 transition-transform duration-200"
+              >
+                {isChecking ? "Checking..." : "Check Links"}
+              </Button>
+              {workingLinks.length > 0 && (
+                <Button
+                  variant="outline"
+                  onClick={downloadWorkingLinks}
+                  className="gap-2 hover:scale-105 transition-transform duration-200"
+                >
+                  <Download size={16} />
+                  Download Working Links
+                </Button>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
